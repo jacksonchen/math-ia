@@ -1,21 +1,18 @@
-# from itertools import product
-# l = list(product(range(30,50,5), range(1,10,3)))
-
 import random
 import time
 
-points = 1000
+points = 100000
 cumSum = 0
-n = 50
+n = points
 
 start = time.time()
 for j in range(1000):
     pointsOut = 0
     pointsIn = 0
-    x = [random.random()*4 for i in xrange(n)]
-    y = [random.random()*4 for i in xrange(n)]
+    x = [random.random()*6 for i in xrange(n)]
+    y = [random.random()*6 for i in xrange(n)]
     for i in range(n):
-        if ((x[i] - 2) ** 2 + (y[i] - 2) ** 2 <= 4):
+        if (y[i] < (-(0.5*x[i]-2.5) ** 2 + 5) and y[i] > (x[i]-3) ** 2):
             pointsIn += 1
     cumSum += pointsIn
 

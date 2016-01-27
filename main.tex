@@ -18,6 +18,7 @@
 \usepackage{csvsimple}
 \usepackage{subfig}
 \usepackage{setspace} % line spacing
+\usepackage{listings}
 \doublespacing
 
 \begin{document}
@@ -33,8 +34,11 @@
   \subsection{Personal Engagement}
 
   I have always learned to solve numeric problems, such as calculating the area of a shape in Euclidean geometry,
-  with a deterministic formulaic method. This may consist of using numeric relationships or calculus. However, I became fascinated with
-  the Monte Carlo method after learning about it from a professor. I had never thought of applying probability to numeric problems
+  with a deterministic formulaic method. This may consist of using numeric relationships or calculus. However, I believed that
+  the conventional way to solve these problems were limited in that it was difficult and time-consuming to calculate the areas
+  of irregular shapes. Furthermore, I am a technology enthusiast, and am fascinated by how the rapidly growing computational power
+  of computers is influencing many topics within math and science. However, I saw geometry as an area that lagged behind other math topics
+  until a professor introduced me to the Monte Carlo method. I had never thought of applying probability to numeric problems
   with seemingly definite solutions until then. The Monte Carlo method will be described in more detail in Section \ref{subsec:explanation}.
   This method is also surprisingly straightforward compared to some of
   the other methods used to solve numeric problems, and may have even an advantage when finding areas of irregular shapes.
@@ -55,16 +59,20 @@
   \section{History}
 
   Before the Monte Carlo method, statistical sampling was used to estimate uncertainties in simulations. The Monte Carlo method
-  reversed this approach, using probabilistic analogs to solve deterministic problems.
+  reversed this approach, using probabilistic analogs to solve deterministic problems.\footnote{``The Beginning of the Monte Carlo Method" by N. Metropolis, 1987}
+  Probabilistic analogs use a heuristic technique to find or generate sufficient solutions to optimization problems. These techniques
+  do not guarantee that the best solution will be found, but they use less computation time and power than optimization algorithms or
+  iterative techniques.
 
   The earliest variant of the Monte Carlo method can be seen in the Buffon's needle experiment in the 18th century where $\pi$ was estimated
-  by dropping needles on a floor made of equidistant and parallel strips.\footnote{"The Beginning of the Monte Carlo Method" by N. Metropolis, 1987}
+  by dropping needles on a floor made of equidistant and parallel strips.\footnote{Ibid.}
 
   However, the current version of the Monte Carlo method was created in the late 1940's by Stanislaw Ulam while working on
   a nuclear weapons project. He was trying to investigate radiation shielding and the distance neutrons would likely travel through various
   materials. Despite his team obtaining all of the necessary data, the physicists were unable to solve the problem using a conventional deterministic
   method. Ulam thought of using random experiments. He generated the pseudorandom numbers using the middle-square method, the quickest at his
-  disposal. Monte Carlo was the code name of the work, due to the level of secrecy required, and the name stuck.\footnote{"Stan Ulam, John von
+  disposal. The middle-square method consists of creating a seed number, squaring it, and then using the middle $n$ digits as the pseudo-randomly
+  generated number. Monte Carlo was the code name of the work, due to the level of secrecy required, and the name stuck.\footnote{``Stan Ulam, John von
   Neumann and the Monte Carlo Method" by Roger Eckhardt, 1987}
 
   The Monte Carlo methods were widely used in the Manhattan Project, and used in the development of the hydrogen bomb. The Rand Corporation
@@ -104,8 +112,10 @@
 
   \[ A = \pi r^2 = 4\pi \approx 12.566 \]
 
-  Now to calculate the area using the Monte Carlo method, a computer program will be used to generate several thousand
-  points within the domain.
+  Now to calculate the area using the Monte Carlo method, I created a computer program that will be used to generate several thousand
+  points within the domain. For every ``number of test points" case, 1000 trials were done and the answer averaged.
+  The purpose of doing that many trials is to normalize any number generation anomalies. The code for the program will be shown in the
+  appendix.
 
   The program uses the \texttt{random} Python library, which implements psuedo-random number generation.
   This library generates random floats uniformly in the range $[0, 1)$. Since Python uses Mersenne Twister as the core generator,
@@ -146,11 +156,83 @@
 
   In the previous situation, it seemed disadvantageous to use the Monte Carlo method in order to calculate the area of the sphere. It requires
   more computing time and power than using the deterministic numerical calculation. This may be true for simple cases such as that. However,
-  in the cases of integration with hundreds of degrees of freedom (or dimensions), the curse of dimensionality\footnote{Richard Ernest Bellman;
-  Rand Corporation (1957). Dynamic programming. Princeton University Press.} dictates an exponential increase in complexity as the number of
-  dimensions rises when using deterministic numerical integration. Using the Monte Carlo method instead would prevent the exponential increase
-  in computational time. According to the central limit theorem, quadrupling the number of samples would halve the error irrespective of the
-  number of dimensions.
+  in the cases of irregularly shaped polygons or integration with hundreds of degrees of freedom (or dimensions), the curse of dimensionality
+  \footnote{Richard Ernest Bellman; Rand Corporation (1957). Dynamic programming. Princeton University Press.} dictates an exponential increase
+  in complexity as the number of dimensions rises when using deterministic numerical integration. Using the Monte Carlo method instead would
+  prevent the exponential increase in computational time. A more complicated example involving integration will be provided to demonstrate the
+  ease of the Monte Carlo method compared to conventional calculations.
+
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[>=stealth]
+        \begin{axis}[
+            xmin=0,xmax=10,
+            ymin=-2,ymax=8,
+            axis x line=middle,
+            axis y line=middle,
+            axis line style=<->,
+            xlabel={$x$},
+            ylabel={$y$},
+            ]
+            \addplot[no marks,blue,<->] expression[domain=0:10,samples=100]{-((1/2)*x-(5/2))^2+5}
+                        node[pos=0.5,anchor=south west]{$y=-(\frac{1}{2}x-\frac{5}{2})^2 + 5 $};
+            \addplot[no marks,red,<->] expression[domain=0:8,samples=100]{(x-3)^2}
+                        node[pos=0.47,anchor=south west]{$y=(x-3)^2$};
+            \addplot[thick, dashed, domain=0:6] {6};
+            \addplot[dashed] coordinates{(6,0) (6,6)};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{A graph with two intersecting quadratic functions. The enclosed area in the middle is in question.} \label{fig:quadratic}
+  \end{figure}
+
+  The area enclosed by two quadratic functions as shown in Figure \ref{fig:quadratic} will be calculated using the conventional method (with
+  integrals) and with the Monte Carlo method. This example will show how the Monte Carlo method is much simpler than subtracting
+  integrals. The dashed box at $x=6$ and $y=6$ represents the domain of the Monte Carlo simulation. \\
+
+  \textbf{Solving with integration}
+
+  First the limits of integration (the two intersection points) need to be determined.
+
+  \[ (x-3)^2 = -\left(\frac{1}{2}x - \frac{5}{2} \right)^2 + 5 \]
+  \[ x = 1.567, 5.233 \]
+
+  Now the formula for the area can be set up.
+
+  \[ A = \int_{1.567}^{5.233} \left( -\left(\frac{1}{2}x-\frac{5}{2} \right)^2 + 5 \right) dx - \int_{1.567}^{5.233} (x-3)^2 dx \]
+  \[ A = \int_{1.567}^{5.233} [(-\left(\frac{1}{2}x-\frac{5}{2} \right)^2 + 5) - (x-3)^2]dx \]
+  \[ \boxed{A = 10.265} \]
+
+  \textbf{Solving with the Monte Carlo Method}
+
+  It took a computer approximately 104.6 seconds to generate 100000 points. As shown in Table \ref{tab:data}, the percent error diminishes
+  as more and more data points are generated. At 100000 data points, the percent error is negligible. However, there are slight variations
+  in the data, for example the area predicted by 10000 data points was less accurate than that of 5000 data points; this is due to the
+  varying nature of pseudo-random number generation.
+
+  \begin{table}[H]
+    \centering
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X }
+      \hline \textbf{Number of test points} & \textbf{Points in Area} & \textbf{Percent of Domain} & \textbf{Predicted Area} & \textbf{Percent Error} \\ \hline
+              10                            &	2                         & 20.0\%                      & 7.200                   & 29.900\%            \\ \hline
+              20                            &	5                         & 25.0\%                      & 9.000                   & 12.323\%            \\ \hline
+              50                            &	14                        & 28.0\%                      & 10.080                  & 1.802\%            \\ \hline
+              100                           &	28                        & 28.0\%                      & 10.080                  & 1.802\%            \\ \hline
+              500                           &	141                       & 28.2\%                      & 10.152                  & 1.101\%            \\ \hline
+              1000                          &	285                       & 28.5\%                      & 10.260                  & 0.0487\%            \\ \hline
+              2000                          & 568                       & 28.4\%                      & 10.224                  & 0.3994\%            \\ \hline
+              5000                          & 1426                      & 28.52\%                     & 10.267                  & 0.0214\%            \\ \hline
+              10000                         & 2849                      & 28.49\%                     & 10.256                  & 0.0838\%            \\ \hline
+              50000                         & 14256                     & 28.51\%                     & 10.264                  & 0.0066\%            \\ \hline
+              100000                        & 28514                     & 28.51\%                     & 10.265                  & 0.0004\%            \\ \hline
+    \end{tabularx}
+    \caption{Predicted area and its accuracy for a varying number of test points.}
+    \label{tab:data}
+  \end{table}
+
+  It can be said that in this example, where the area between two curves is calculated, it is much simpler and less time-consuming to
+  use the Monte Carlo method rather than using integration. Setting up the integration (determining the limits of integration) and
+  solving it requires a hefty amount of calculation, while generating 100000 points with a computer program using the Monte Carlo
+  method resulted in the same answer.
 
   \section{Applications}
 
@@ -184,5 +266,34 @@
   problems in an unconventional manner. With my new knowledge, I can fully appreciate the widespread applications that math entails in my daily
   life. The multidisciplinary approach taken with this method has driven me to continue researching this topic, as I have experience
   in many fields of that have been influenced by this method.
+
+  \newpage
+  \appendix
+  \section{Appendix: Python Code for the Monte Carlo Program}
+    \begin{lstlisting}
+      import random
+      import time
+
+      points = 100000
+      cumSum = 0
+      n = points
+
+      start = time.time()
+      for j in range(1000):
+          pointsOut = 0
+          pointsIn = 0
+          x = [random.random()*6 for i in xrange(n)]
+          y = [random.random()*6 for i in xrange(n)]
+          for i in range(n):
+              if (y[i] < (-(0.5*x[i]-2.5) ** 2 + 5) and y[i] > (x[i]-3) ** 2):
+                  pointsIn += 1
+          cumSum += pointsIn
+
+      f = open('result.txt', 'w')
+      f.write(str(cumSum/1000))
+      f.close()
+      end = time.time()
+      print end - start
+    \end{lstlisting}
 
 \end{document}
